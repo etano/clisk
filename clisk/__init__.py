@@ -23,7 +23,7 @@ class Game(object):
         self.players = {}
         for i in range(n_players):
             name = str(i)
-            self.players[name] = Player(name)
+            self.players[name] = RandomPlayer(name)
 
         # Set up gameboard
         self.board = Gameboard()
@@ -95,20 +95,6 @@ class Game(object):
                 n_troops += region['value']
         return n_troops
 
-    def place_troops(self, player, n_troops):
-        """Place troops at the beginning of a player's turn
-
-           Args:
-               player (Player): Relevant player
-               n_troops (int): Number of new troops to deploy
-        """
-        # TODO: Make non-random
-        territories = player.territories.keys()
-        for i in range(n_troops):
-            territory = random.choice(territories)
-            print('Player %s is placing %i troop(s) on %s' % (player.name, 1, territory))
-            player.territories[territory] += 1
-
     def roll(self, n_attack_dice, n_defend_dice):
         """Roll the dice and report the losses
 
@@ -128,39 +114,33 @@ class Game(object):
         print('Attacker loses %i troops, defender loses %i troops' % (losses[0], losses[1]))
         return losses
 
-    def attack(self, player):
-        """Attack phase
+    def get_player(self, territory):
+        """Get player from territory
 
            Args:
-               player (Player): Relevant player
+               territory (str): Name of territory
+
+           Returns:
+               (Player): Player who owns the territory
         """
-        # Get all loaded territories
-        loaded_territories = [x for x in player.territories.keys() if player.territories[x] > 1]
-        if not loaded_territories: return
+        for player in self.players.values():
+            if territory in player.territories:
+                return player
 
-        # Choose a random loaded territory and attack a random neighbor
-        random.shuffle(loaded_territories)
-        from_territory, to_territory = None, None
-        for i in range(len(loaded_territories)):
-            from_territory = loaded_territories[i]
-            neighbor_territories = [x for x in self.board.get_neighbors(from_territory) if not (x in player.territories.keys())]
-            if neighbor_territories:
-                to_territory = random.choice(neighbor_territories)
-                break # For now only 1 attack
-        if (not from_territory) or (not to_territory): return
+    def attack_to_completion(self, from_territory, to_territory):
+        """Attack to completion
 
-        # Get other player
-        other_player = None
-        for other_player in self.players.values():
-            if to_territory in other_player.territories:
-                break
-
-        # Attack to completion
-        n_from_troops = player.territories[from_territory]
-        n_to_troops = other_player.territories[to_territory]
-        while (n_from_troops > 1) and (to_territory in other_player.territories):
+           Args:
+               from_territory (str): Name of territory attacking
+               to_territory (str): Name of territory begin attacked
+        """
+        from_player = self.get_player(from_territory)
+        to_player = self.get_player(to_territory)
+        n_from_troops = from_player.territories[from_territory]
+        n_to_troops = to_player.territories[to_territory]
+        while (n_from_troops > 1) and (to_territory in to_player.territories):
             print('Player %s is attacking %s (o: %s, n: %i) from %s (o: %s, n: %i)' %
-                  (player.name, to_territory, other_player.name, n_to_troops, from_territory, player.name, n_from_troops))
+                  (from_player.name, to_territory, to_player.name, n_to_troops, from_territory, from_player.name, n_from_troops))
 
             # Roll the dice
             n_attack_dice = min(3, n_from_troops-1)
@@ -170,42 +150,15 @@ class Game(object):
             # Apply the losses
             n_from_troops -= losses[0]
             n_to_troops -= losses[1]
-            player.territories[from_territory] = n_from_troops
-            other_player.territories[to_territory] = n_to_troops
+            from_player.territories[from_territory] = n_from_troops
+            to_player.territories[to_territory] = n_to_troops
 
             # Check if territory is won
             if not n_to_troops:
-                del other_player.territories[to_territory]
-                player.territories[to_territory] = n_from_troops - 1
-                player.territories[from_territory] = 1
-                print('Player %s won %s and is moving %i troops' % (player.name, to_territory, player.territories[to_territory]))
-
-    def troop_move(self, player):
-        """Troop movement phase
-
-           Args:
-               player (Player): Relevant player
-        """
-        # Get all loaded territories
-        loaded_territories = [x for x in player.territories.keys() if player.territories[x] > 1]
-        if not loaded_territories: return
-
-        # Choose a random loaded territory and a random owned neighbor
-        random.shuffle(loaded_territories)
-        from_territory, to_territory = None, None
-        for i in range(len(loaded_territories)):
-            from_territory = loaded_territories[i]
-            neighbor_territories = [x for x in self.board.get_neighbors(from_territory) if (x in player.territories.keys())]
-            if neighbor_territories:
-                to_territory = random.choice(neighbor_territories)
-                break # For now only 1 attack
-        if (not from_territory) or (not to_territory): return
-
-        # Move all but 1
-        n_move_troops = player.territories[from_territory] - 1
-        player.territories[to_territory] += n_move_troops
-        player.territories[from_territory] -= n_move_troops
-        print('Player %s is moving %i troops from %s to %s' % (player.name, n_move_troops, from_territory, to_territory))
+                del to_player.territories[to_territory]
+                from_player.territories[to_territory] = n_from_troops - 1
+                from_player.territories[from_territory] = 1
+                print('Player %s won %s and is moving %i troops' % (from_player.name, to_territory, from_player.territories[to_territory]))
 
     def draw(self):
         """Draw the board
@@ -220,8 +173,26 @@ class Game(object):
         """
         while(not self.is_game_over()): # Main loop
             for player in self.players.values(): # Turn loop
+                # Troop placement phase
                 n_troops = self.collect_troops(player)
-                self.place_troops(player, n_troops)
-                self.attack(player)
-                self.troop_move(player)
+                placements = player.place_troops(self.board, n_troops)
+                for territory, n_troops in placements.items():
+                    player.territories[territory] += n_troops
+                    print('Player %s is placing %i troop(s) on %s' % (player.name, n_troops, territory))
                 self.draw()
+
+                # Attack phase
+                # TODO: multiple attacks
+                # TODO: don't always attack until completion
+                from_territory, to_territory = player.attack(self.board)
+                if from_territory and to_territory:
+                    self.attack_to_completion(from_territory, to_territory)
+                    self.draw()
+
+                # Troop move phase
+                from_territory, to_territory, n_move_troops = player.move_troops(self.board)
+                if from_territory and to_territory and n_move_troops:
+                    player.territories[from_territory] -= n_move_troops
+                    player.territories[to_territory] += n_move_troops
+                    print('Player %s is moving %i troops from %s to %s' % (player.name, n_move_troops, from_territory, to_territory))
+                    self.draw()
