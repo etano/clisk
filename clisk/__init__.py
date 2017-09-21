@@ -70,7 +70,7 @@ class Game(object):
         n_territories = len(self.board.get_territories())
         for player in self.players:
             if len(self.board.get_territories(player.name)) == n_territories:
-                print('%s wins!' % (player.name))
+                print('Player %s wins!' % (player.name))
                 return True
         return False
 
@@ -155,9 +155,11 @@ class Game(object):
     def run_engine(self):
         """Run the main game loop
         """
-        self.board.draw()
         while(not self.is_game_over()): # Main loop
             for player in self.players: # Turn loop
+                # Draw board
+                self.board.draw()
+
                 # Troop placement phase
                 n_troops = self.collect_troops(player)
                 placements = player.place_troops(self.board, n_troops)
@@ -178,5 +180,3 @@ class Game(object):
                     self.board.set_n_troops(from_territory, self.board.get_n_troops(from_territory) - n_move_troops)
                     self.board.set_n_troops(to_territory, self.board.get_n_troops(to_territory) + n_move_troops)
                     print('Player %s is moving %i troops from %s to %s' % (player.name, n_move_troops, from_territory, to_territory))
-
-                self.board.draw()

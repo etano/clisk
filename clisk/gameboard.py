@@ -211,11 +211,8 @@ class Gameboard(object):
                (list): List of territories
         """
         if not player: return self.graph.nodes.keys()
-        territories = []
-        for territory, node in self.graph.nodes.items():
-            if node.att['o'] == player:
-                territories.append(territory)
-        return territories
+        # TODO: Optimize
+        return [x for x in self.graph.nodes.keys() if self.graph.nodes[x].att['o'] == player]
 
     def get_neighbors(self, territory):
         """Return a list of territories neighboring a given territory
