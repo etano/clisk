@@ -3,7 +3,6 @@ class Player(object):
 
        Attributes:
            name (str): Player name
-           territories (dict(str, int)): Dictionary of territories and troops
     """
 
     def __init__(self, name):
@@ -13,7 +12,6 @@ class Player(object):
                name (str): Player name
         """
         self.name = name
-        self.territories = {}
 
     def place_troops(self, board, n_troops):
         """Place troops on territories

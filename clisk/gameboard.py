@@ -201,13 +201,21 @@ class Gameboard(object):
         self.graph.add_edge('Greenland', 'Iceland', label='+')
         self.graph.add_edge('Central America', 'Venezuela', label='+')
 
-    def get_territories(self):
+    def get_territories(self, player=None):
         """Return a list of territories
+
+           Args:
+               player (Player): Relevant player (if None, use all players)
 
            Returns:
                (list): List of territories
         """
-        return self.graph.nodes.keys()
+        if not player: return self.graph.nodes.keys()
+        territories = []
+        for territory, node in self.graph.nodes.items():
+            if node.att['o'] == player:
+                territories.append(territory)
+        return territories
 
     def get_neighbors(self, territory):
         """Return a list of territories neighboring a given territory
@@ -222,17 +230,46 @@ class Gameboard(object):
             if territory == edge.n1.label: neighbors.append(edge.n0.label)
         return neighbors
 
-    def assign(self, territory, player, n_troops):
-        """Assign a territory to a player with a number of troops
+    def get_n_troops(self, territory):
+        """Get number of troops on a territory
 
            Args:
-                territory (str): Name of territory
-                player (str): Name of player
-                n_troops (int): Number of troops
+               territory (str): Name of territory
+
+           Returns:
+               (int): Number of troops on a territory
+        """
+        return self.graph.nodes[territory].att['n']
+
+    def set_n_troops(self, territory, n_troops):
+        """Set number of troops on a territory
+
+           Args:
+               territory (str): Name of territory
+               n_troops (int): Number of troops
         """
         if n_troops < 0: raise ValueError('# troops must be non-negative')
-        self.graph.nodes[territory].att['o'] = player
         self.graph.nodes[territory].att['n'] = n_troops
+
+    def get_owner(self, territory):
+        """Get player from territory
+
+           Args:
+               territory (str): Name of territory
+
+           Returns:
+               (str): Name of player who owns the territory
+        """
+        return self.graph.nodes[territory].att['o']
+
+    def assign(self, territory, player):
+        """Assign a territory to a player
+
+           Args:
+               territory (str): Name of territory
+               player (str): Name of player
+        """
+        self.graph.nodes[territory].att['o'] = player
 
     def draw(self):
         """Draw the board

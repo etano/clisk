@@ -6,8 +6,6 @@ class RandomPlayer(Player):
 
        Attributes:
            name (str): Player name
-           territories (dict(str, int)): Dictionary of territories and troops
-           seed (int): Random seed
     """
 
     def __init__(self, name, seed=0):
@@ -30,9 +28,10 @@ class RandomPlayer(Player):
            Returns:
                (dict(str, int)): Dictionary of territories with number of troops to be deployed
         """
+        territories = board.get_territories(self.name)
         placements = {}
         for i in range(n_troops):
-            territory = random.choice(self.territories.keys())
+            territory = random.choice(territories)
             if territory in placements: placements[territory] += 1
             else: placements[territory] = 1
         return placements
@@ -49,7 +48,8 @@ class RandomPlayer(Player):
         from_territory, to_territory = None, None
 
         # Get all loaded territories
-        loaded_territories = [x for x in self.territories.keys() if self.territories[x] > 1]
+        territories = board.get_territories(self.name)
+        loaded_territories = [x for x in territories if board.get_n_troops(x) > 1]
         if not loaded_territories:
             return from_territory, to_territory
 
@@ -57,7 +57,7 @@ class RandomPlayer(Player):
         random.shuffle(loaded_territories)
         for i in range(len(loaded_territories)):
             from_territory = loaded_territories[i]
-            neighbor_territories = [x for x in board.get_neighbors(from_territory) if not (x in self.territories.keys())]
+            neighbor_territories = [x for x in board.get_neighbors(from_territory) if not (x in territories)]
             if neighbor_territories:
                 to_territory = random.choice(neighbor_territories)
                 return from_territory, to_territory
@@ -75,7 +75,8 @@ class RandomPlayer(Player):
         from_territory, to_territory, n_troops = None, None, 0
 
         # Get all loaded territories
-        loaded_territories = [x for x in self.territories.keys() if self.territories[x] > 1]
+        territories = board.get_territories(self.name)
+        loaded_territories = [x for x in territories if board.get_n_troops(x) > 1]
         if not loaded_territories:
             return from_territory, to_territory, n_troops
 
@@ -83,10 +84,10 @@ class RandomPlayer(Player):
         random.shuffle(loaded_territories)
         for i in range(len(loaded_territories)):
             from_territory = loaded_territories[i]
-            neighbor_territories = [x for x in board.get_neighbors(from_territory) if (x in self.territories.keys())]
+            neighbor_territories = [x for x in board.get_neighbors(from_territory) if (x in territories)]
             if neighbor_territories:
                 # Move all but 1
-                n_troops = self.territories[from_territory] - 1
+                n_troops = board.get_n_troops(from_territory) - 1
                 to_territory = random.choice(neighbor_territories)
                 return from_territory, to_territory, n_troops
         return from_territory, to_territory, n_troops
