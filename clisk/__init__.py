@@ -1,6 +1,7 @@
 from player import *
 from gameboard import *
 
+# TODO: Make own random engine for Game object
 import random
 random.seed(0)
 
@@ -180,3 +181,5 @@ class Game(object):
                     self.board.set_n_troops(from_territory, self.board.get_n_troops(from_territory) - n_move_troops)
                     self.board.set_n_troops(to_territory, self.board.get_n_troops(to_territory) + n_move_troops)
                     print('Player %s is moving %i troops from %s to %s' % (player.name, n_move_troops, from_territory, to_territory))
+
+                # TODO: Add cards

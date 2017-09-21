@@ -1,6 +1,7 @@
 import random
 from player import Player
 
+# TODO: Make own random engine
 class RandomPlayer(Player):
     """RandomPlayer class
 
