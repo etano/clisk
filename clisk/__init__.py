@@ -24,7 +24,10 @@ class Game(object):
         self.players = []
         for i in range(n_players):
             name = str(i)
-            self.players.append(RandomPlayer(name))
+            if i == 0:
+                self.players.append(HumanPlayer(name))
+            else:
+                self.players.append(RandomPlayer(name))
 
         # Set up game
         self.board = Gameboard()

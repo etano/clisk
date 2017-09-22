@@ -214,8 +214,33 @@ class Gameboard(object):
         # TODO: Optimize
         return [x for x in self.graph.nodes.keys() if self.graph.nodes[x].att['o'] == player]
 
+    def get_attacking_territories(self, player):
+        """Return a list of territories that are able to attack
+
+           Args:
+               player (Player): Relevant player
+
+           Returns:
+               (list): List of territories
+        """
+        return [x for x in self.get_territories(player) if (self.get_n_troops(x) > 1) and len(self.get_hostile_neighbors(x))]
+
+    def get_moving_territories(self, player):
+        """Return a list of territories that are able to move
+
+           Args:
+               player (Player): Relevant player
+
+           Returns:
+               (list): List of territories
+        """
+        return [x for x in self.get_territories(player) if (self.get_n_troops(x) > 1) and len(self.get_friendly_neighbors(x))]
+
     def get_neighbors(self, territory):
         """Return a list of territories neighboring a given territory
+
+           Args:
+               territory (str): Name of territory
 
            Returns:
                (list): List of territories
@@ -226,6 +251,28 @@ class Gameboard(object):
             if territory == edge.n0.label: neighbors.append(edge.n1.label)
             if territory == edge.n1.label: neighbors.append(edge.n0.label)
         return neighbors
+
+    def get_friendly_neighbors(self, territory):
+        """Return a list of territories neighboring a given territory
+
+           Args:
+               territory (str): Name of territory
+
+           Returns:
+               (list): List of territories
+        """
+        return [x for x in self.get_neighbors(territory) if self.get_owner(x) == self.get_owner(territory)]
+
+    def get_hostile_neighbors(self, territory):
+        """Return a list of territories neighboring a given territory
+
+           Args:
+               territory (str): Name of territory
+
+           Returns:
+               (list): List of territories
+        """
+        return [x for x in self.get_neighbors(territory) if self.get_owner(x) != self.get_owner(territory)]
 
     def get_n_troops(self, territory):
         """Get number of troops on a territory
