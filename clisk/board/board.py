@@ -24,8 +24,8 @@ class Board(object):
                (list(str)): List of territories
         """
         if not player: return self.graph.nodes.keys()
-        # TODO: Optimize
-        return [x for x in self.graph.nodes.keys() if self.graph.nodes[x].att['o'] == player]
+        # TODO: Optimize by storing
+        return [t for t in self.graph.nodes.keys() if self.graph.nodes[t].att['o'] == player]
 
     def get_attacking_territories(self, player):
         """Return a list of territories that are able to attack
@@ -36,7 +36,7 @@ class Board(object):
            Returns:
                (list): List of territories
         """
-        return [x for x in self.get_territories(player) if (self.get_n_troops(x) > 1) and len(self.get_hostile_neighbors(x))]
+        return [t for t in self.get_territories(player) if (self.get_n_troops(t) > 1) and len(self.get_hostile_neighbors(t))]
 
     def get_moving_territories(self, player):
         """Return a list of territories that are able to move
@@ -47,7 +47,7 @@ class Board(object):
            Returns:
                (list): List of territories
         """
-        return [x for x in self.get_territories(player) if (self.get_n_troops(x) > 1) and len(self.get_friendly_neighbors(x))]
+        return [t for t in self.get_territories(player) if (self.get_n_troops(t) > 1) and len(self.get_friendly_neighbors(t))]
 
     def get_neighbors(self, territory):
         """Return a list of territories neighboring a given territory
@@ -74,7 +74,7 @@ class Board(object):
            Returns:
                (list): List of territories
         """
-        return [x for x in self.get_neighbors(territory) if self.get_owner(x) == self.get_owner(territory)]
+        return [t for t in self.get_neighbors(territory) if self.get_owner(t) == self.get_owner(territory)]
 
     def get_hostile_neighbors(self, territory):
         """Return a list of territories neighboring a given territory
@@ -85,30 +85,18 @@ class Board(object):
            Returns:
                (list): List of territories
         """
-        return [x for x in self.get_neighbors(territory) if self.get_owner(x) != self.get_owner(territory)]
+        return [t for t in self.get_neighbors(territory) if self.get_owner(t) != self.get_owner(territory)]
 
-    def get_regions(self, player=None):
-        """Return a list of regions
+    def get_regions(self, territories):
+        """Return a list of regions contained in a list of territories
 
            Args:
-               player (Player): Relevant player (if None, use all players)
+               territories (list(str)): List of territories
 
            Returns:
                (list(dict(str, value)): List of regions
         """
-        if not player: return self.regions
-        # TODO: Optimize
-        territories = self.get_territories(player)
-        regions = []
-        for region in self.regions:
-            n_matching = 0
-            for territory in region['territories']:
-                if not (territory in territories):
-                    break
-                n_matching += 1
-            if n_matching == len(region['territories']):
-                regions.append(region)
-        return regions
+        return [r for r in self.regions if all(t in territories for t in r['territories'])]
 
     def get_n_troops(self, territory):
         """Get number of troops on a territory
@@ -156,8 +144,10 @@ class Board(object):
         """
         print('---')
         self.graph.draw()
-        territories = self.get_territories()
-        players = list(set([self.get_owner(x) for x in territories]))
+        players = list(set([self.get_owner(t) for t in self.get_territories()])) # TODO: Optimize by storing this
         for player in players:
-            print('Player %s: territories: %i, regions: %i' % (player, len(self.get_territories(player)), len(self.get_regions(player))))
+            territories = self.get_territories(player)
+            n_troops = sum([self.get_n_troops(t) for t in territories])
+            regions = self.get_regions(territories)
+            print('Player %s: troops: %i, territories: %i, regions: %i' % (player, n_troops, len(territories), len(regions)))
         print('---')

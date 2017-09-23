@@ -194,7 +194,7 @@ class HumanPlayer(Player):
            Returns:
                (int): Chosen number of troops
         """
-        readline.set_completer(self.custom_complete([str(x) for x in range(min_troops, max_troops+1)]))
+        readline.set_completer(self.custom_complete([str(n) for n in range(min_troops, max_troops+1)]))
         prompt += ' (%i-%i' % (min_troops, max_troops)
         if use_default: prompt += ', default: %i' % (default)
         prompt += '): '

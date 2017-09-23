@@ -1,44 +1,24 @@
-import random
-from player import *
-from board import *
-
 class Game(object):
     """Game class
 
        Attributes:
            players (list(Player)): List of players
            board (Board): State of the game board
+           random (random): Random engine
     """
 
-    def __init__(self, n_players, seed=0):
+    def __init__(self, players, board, random):
         """Initialize game
 
            Args:
-               n_players (int): Number of players
-               seed (int): Random seed
+               players (list(Player)): List of players
+               board (Board): State of the game board
+               random (random): Random engine
         """
-        random.seed(seed)
+        self.players = players
+        self.board = board
+        self.random = random
 
-        # Set up players
-        if n_players < 2: raise ValueError('# of players must be at least 2')
-        self.players = []
-        for i in range(n_players):
-            name = str(i)
-            #if i == 0:
-            #    self.players.append(HumanPlayer(name))
-            #else:
-            self.players.append(RandomPlayer(name, random))
-
-        # Set up game
-        self.board = GridBoard()
-        self.setup_pieces()
-
-        # Start engine
-        self.play()
-
-    def setup_pieces(self):
-        """Assign territories and troops to players
-        """
         # Randomly distribute territories
         territories = self.board.get_territories()
         n_territories = len(territories)
@@ -49,7 +29,7 @@ class Game(object):
         for player in self.players:
             if len(t_assignment) == n_territories: break
             t_assignment += [player.name]
-        random.shuffle(t_assignment)
+        self.random.shuffle(t_assignment)
         for i in range(n_territories):
             territory, player_name = territories[i], t_assignment[i]
             self.board.assign(territory, player_name)
@@ -61,7 +41,7 @@ class Game(object):
             territories = self.board.get_territories(player.name)
             total_troops = len(territories)
             while total_troops < starting_troops:
-                territory = random.choice(territories)
+                territory = self.random.choice(territories)
                 self.board.set_n_troops(territory, self.board.get_n_troops(territory) + 1)
                 total_troops += 1
 
@@ -75,6 +55,7 @@ class Game(object):
         for player in self.players:
             if len(self.board.get_territories(player.name)) == n_territories:
                 print('Player %s wins!' % (player.name))
+                self.board.draw()
                 return True
         return False
 
@@ -92,7 +73,7 @@ class Game(object):
         if not n_territories: return 0
         n_troops = max(3, n_territories // 3)
         print('Player %s receives %i extra troops for owning %i territories' % (player.name, n_troops, n_territories))
-        regions = self.board.get_regions(player.name)
+        regions = self.board.get_regions(territories)
         for region in regions:
             print('Player %s receives %i extra troops for owning %s' % (player.name, region['value'], region['name']))
             n_troops += region['value']
@@ -105,8 +86,8 @@ class Game(object):
                n_attack_dice (int): Number of attacking dice
                n_defend_dice (int): Number of defending dice
         """
-        attack_dice = sorted([random.randint(1, 6) for x in range(n_attack_dice)], reverse=True)
-        defend_dice = sorted([random.randint(1, 6) for x in range(n_defend_dice)], reverse=True)
+        attack_dice = sorted([self.random.randint(1, 6) for x in range(n_attack_dice)], reverse=True)
+        defend_dice = sorted([self.random.randint(1, 6) for x in range(n_defend_dice)], reverse=True)
         print('Attacker rolled %s, defender rolled %s' % (str(attack_dice), str(defend_dice)))
         losses = [0, 0]
         for i in range(min(n_attack_dice, n_defend_dice)):
