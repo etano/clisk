@@ -142,7 +142,7 @@ class Gameboard(object):
         self.graph.add_node('Yakutsk', pos=[0.9, 0.1], show_att=True)
         self.graph.add_node('Irkutsk', pos=[0.9, 0.25], show_att=True)
         self.graph.add_node('Kamchatka', pos=[1.0, 0.0], show_att=True)
-        self.graph.add_node('Japan', pos=[1.0, 0.25], show_att=True)
+        self.graph.add_node('Japan', pos=[1.0, 0.3], show_att=True)
         self.graph.add_node('Siam', pos=[0.9, 0.65], show_att=True)
         self.graph.add_edge('Middle East', 'Afghanistan')
         self.graph.add_edge('Middle East', 'India')

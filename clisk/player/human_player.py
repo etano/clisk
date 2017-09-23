@@ -1,7 +1,6 @@
 from player import Player
 import readline
 
-# TODO: tab completion
 # TODO: prompt for continuing attack
 
 class HumanPlayer(Player):
