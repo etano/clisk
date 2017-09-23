@@ -101,6 +101,14 @@ class HumanPlayer(Player):
         return from_territory, to_territory, n_troops
 
     def custom_complete(self, commands):
+        """Create a custom tab completion function
+
+           Args:
+               commands (list(str)): List of commands to tab complete
+
+           Returns:
+               (function(str, int) -> str): Completion function
+        """
         def complete(text, state):
             for cmd in commands:
                 if cmd.startswith(text):
@@ -111,6 +119,16 @@ class HumanPlayer(Player):
         return complete
 
     def get_territory(self, territories, prompt='Enter a territory: ', skipable=False):
+        """Get a territory from the user
+
+           Args:
+               territories (list(str)): List of territories to choose from
+               prompt (str): Prompt for user entry
+               skipable (bool): Whether or not it is skipable
+
+           Returns:
+               (str): Chosen territory
+        """
         if skipable: prompt = '(ENTER TO SKIP) '+prompt
         readline.set_completer(self.custom_complete(territories))
         while True:
@@ -125,6 +143,17 @@ class HumanPlayer(Player):
                 print(e)
 
     def get_n_troops(self, min_troops, max_troops, prompt='Enter number of troops: ', skipable=False):
+        """Get a number of troops from the user
+
+           Args:
+               min_troops (int): Minimum number of troops
+               max_troops (int): Maximum number of troops
+               prompt (str): Prompt for user entry
+               skipable (bool): Whether or not it is skipable
+
+           Returns:
+               (int): Chosen number of troops
+        """
         if skipable: prompt = '(ENTER TO SKIP) '+prompt
         readline.set_completer(self.custom_complete([str(x) for x in range(min_troops, max_troops+1)]))
         while True:
@@ -133,6 +162,7 @@ class HumanPlayer(Player):
                 if skipable and (not n_troops):
                     print('SKIPPING')
                     return n_troops
+                if not n_troops.isdigit(): raise TypeError('Must be a positive integer')
                 n_troops = int(n_troops)
                 if (n_troops < min_troops): raise ValueError('Number of troops cannot be less than %i' % (min_troops))
                 if (n_troops > max_troops): raise ValueError('Number of troops cannot be more than %i' % (max_troops))
