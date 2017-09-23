@@ -1,3 +1,3 @@
 import clisk
 
-game = clisk.Game(2)
+game = clisk.Game(4)

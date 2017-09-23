@@ -1,13 +1,13 @@
 import random
 from player import *
-from gameboard import *
+from board import *
 
 class Game(object):
     """Game class
 
        Attributes:
            players (list(Player)): List of players
-           board (Board): Gameboard
+           board (Board): State of the game board
     """
 
     def __init__(self, n_players, seed=0):
@@ -30,7 +30,7 @@ class Game(object):
                 self.players.append(RandomPlayer(name, random))
 
         # Set up game
-        self.board = Gameboard()
+        self.board = GridBoard()
         self.setup_pieces()
 
         # Start engine
@@ -149,12 +149,12 @@ class Game(object):
                 self.board.set_n_troops(to_territory, n_move_troops)
                 self.board.set_n_troops(from_territory, 1)
                 print('Player %s won %s and is moving %i troops' % (from_player, to_territory, n_move_troops))
-                break
+                return
 
     def play(self):
         """Run the main game loop
         """
-        while(not self.is_game_over()):
+        while not self.is_game_over():
             for player in self.players:
                 # Troop placement phase
                 n_troops = self.collect_troops(player)
