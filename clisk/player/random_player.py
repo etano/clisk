@@ -1,23 +1,24 @@
-import random
 from player import Player
 
-# TODO: Make own random engine
 class RandomPlayer(Player):
-    """RandomPlayer class
+    """RandomPlayer class that attacks randomly until it wins a battle or can't attack anymore, and moves randomly
 
        Attributes:
            name (str): Player name
+           random (random): Random engine
+           last_attacked_territory (str): Territory last attacked
     """
 
-    def __init__(self, name, seed=0):
+    def __init__(self, name, random):
         """Initialize player
 
            Args:
                name (str): Player name
-               seed (int): Random seed
+               random (random): Random engine
         """
         super(RandomPlayer, self).__init__(name)
-        random.seed(seed)
+        self.random = random
+        self.last_attacked_territory = None
 
     def place_troops(self, board, n_troops):
         """Place troops on territories
@@ -32,10 +33,21 @@ class RandomPlayer(Player):
         territories = board.get_territories(self.name)
         placements = {}
         for i in range(n_troops):
-            territory = random.choice(territories)
+            territory = self.random.choice(territories)
             if territory in placements: placements[territory] += 1
             else: placements[territory] = 1
         return placements
+
+    def do_attack(self, board):
+        """Decide whether or not to continue attacking
+
+           Args:
+               board (Gameboard): The gameboard
+
+           Returns:
+               (bool): Whether or not to continue attacking
+        """
+        return (board.get_owner(self.last_attacked_territory) != self.name) if self.last_attacked_territory else True
 
     def attack(self, board):
         """Attack phase
@@ -55,14 +67,26 @@ class RandomPlayer(Player):
             return from_territory, to_territory
 
         # Choose a random loaded territory and a random non-owned neighbor to attack
-        random.shuffle(loaded_territories)
+        self.random.shuffle(loaded_territories)
         for i in range(len(loaded_territories)):
             from_territory = loaded_territories[i]
             neighbor_territories = [x for x in board.get_neighbors(from_territory) if not (x in territories)]
             if neighbor_territories:
-                to_territory = random.choice(neighbor_territories)
+                to_territory = self.random.choice(neighbor_territories)
+                self.last_attacked_territory = to_territory
                 return from_territory, to_territory
         return from_territory, to_territory
+
+    def do_move_troops(self, board):
+        """Decide whether or not to move troops
+
+           Args:
+               board (Gameboard): The gameboard
+
+           Returns:
+               (bool): Whether or not to move troops
+        """
+        return True
 
     def move_troops(self, board):
         """Troop movement phase
@@ -73,6 +97,7 @@ class RandomPlayer(Player):
            Returns:
                (str, str, int): from_territory, to_territory, n_troops
         """
+        self.last_attacked_territory = None
         from_territory, to_territory, n_troops = None, None, 0
 
         # Get all loaded territories
@@ -82,13 +107,13 @@ class RandomPlayer(Player):
             return from_territory, to_territory, n_troops
 
         # Choose a random loaded territory and a random owned neighbor to move to
-        random.shuffle(loaded_territories)
+        self.random.shuffle(loaded_territories)
         for i in range(len(loaded_territories)):
             from_territory = loaded_territories[i]
             neighbor_territories = [x for x in board.get_neighbors(from_territory) if (x in territories)]
             if neighbor_territories:
                 # Move all but 1
                 n_troops = board.get_n_troops(from_territory) - 1
-                to_territory = random.choice(neighbor_territories)
+                to_territory = self.random.choice(neighbor_territories)
                 return from_territory, to_territory, n_troops
         return from_territory, to_territory, n_troops

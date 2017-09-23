@@ -208,11 +208,34 @@ class Gameboard(object):
                player (Player): Relevant player (if None, use all players)
 
            Returns:
-               (list): List of territories
+               (list(str)): List of territories
         """
         if not player: return self.graph.nodes.keys()
         # TODO: Optimize
         return [x for x in self.graph.nodes.keys() if self.graph.nodes[x].att['o'] == player]
+
+    def get_regions(self, player=None):
+        """Return a list of regions
+
+           Args:
+               player (Player): Relevant player (if None, use all players)
+
+           Returns:
+               (list(dict(str, value)): List of regions
+        """
+        if not player: return self.regions
+        # TODO: Optimize
+        territories = self.get_territories(player)
+        regions = []
+        for region in self.regions:
+            n_matching = 0
+            for territory in region['territories']:
+                if not (territory in territories):
+                    break
+                n_matching += 1
+            if n_matching == len(region['territories']):
+                regions.append(region)
+        return regions
 
     def get_attacking_territories(self, player):
         """Return a list of territories that are able to attack
@@ -316,6 +339,12 @@ class Gameboard(object):
         self.graph.nodes[territory].att['o'] = player
 
     def draw(self):
-        """Draw the board
+        """Draw the board and print stats
         """
+        print('---')
         self.graph.draw()
+        territories = self.get_territories()
+        players = list(set([self.get_owner(x) for x in territories]))
+        for player in players:
+            print('Player %s: territories: %i, regions: %i' % (player, len(self.get_territories(player)), len(self.get_regions(player))))
+        print('---')
