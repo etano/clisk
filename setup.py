@@ -47,8 +47,9 @@ setup(
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
-        'Topic :: Printing',
-        'Topic :: Multimedia :: Graphics :: Presentation',
+        'Intended Audience :: End Users/Desktop',
+        'Topic :: Games/Entertainment',
+        'Topic :: Games/Entertainment :: Board Games'
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
@@ -64,7 +65,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='graph ascii terminal print',
+    keywords='cli risk',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -107,8 +108,8 @@ setup(
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
-    #    'console_scripts': [
-    #        'sample=sample:main',
-    #    ],
+        'console_scripts': [
+            'clisk=clisk:main',
+        ],
     },
 )

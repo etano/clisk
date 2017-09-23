@@ -24,10 +24,10 @@ class Game(object):
         self.players = []
         for i in range(n_players):
             name = str(i)
-            if i == 0:
-                self.players.append(HumanPlayer(name))
-            else:
-                self.players.append(RandomPlayer(name, random))
+            #if i == 0:
+            #    self.players.append(HumanPlayer(name))
+            #else:
+            self.players.append(RandomPlayer(name, random))
 
         # Set up game
         self.board = GridBoard()
