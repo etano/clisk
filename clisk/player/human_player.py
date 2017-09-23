@@ -1,4 +1,5 @@
 from player import Player
+import readline
 
 # TODO: tab completion
 # TODO: prompt for continuing attack
@@ -17,6 +18,8 @@ class HumanPlayer(Player):
                name (str): Player name
         """
         super(HumanPlayer, self).__init__(name)
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer_delims('')
 
     def place_troops(self, board, n_troops):
         """Place troops on territories
@@ -37,7 +40,7 @@ class HumanPlayer(Player):
         while n_troops_left > 0:
             print('%i troops left to deploy' % n_troops_left)
             territory = self.get_territory(territories, prompt='Enter a territory to deploy troops to: ')
-            n_troops_deploy = self.get_n_troops(1, n_troops_left, prompt='Enter number of troops to deploy: ')
+            n_troops_deploy = self.get_n_troops(1, n_troops_left, prompt='Enter number of troops to deploy (%i-%i): '%(1, n_troops_left))
             if not (territory in placements): placements[territory] = 0
             placements[territory] += n_troops_deploy
             n_troops_left -= n_troops_deploy
@@ -94,11 +97,23 @@ class HumanPlayer(Player):
         if from_territory:
             to_territory = self.get_territory(board.get_friendly_neighbors(from_territory), prompt='Enter a territory to move to: ', skipable=True)
             if to_territory:
-                n_troops = self.get_n_troops(1, board.get_n_troops(from_territory)-1, prompt='Enter number of troops to move: ', skipable=True)
+                min_troops, max_troops = 1, board.get_n_troops(from_territory)-1
+                n_troops = self.get_n_troops(min_troops, max_troops, prompt='Enter number of troops to move (%i-%i): '%(min_troops, max_troops), skipable=True)
         return from_territory, to_territory, n_troops
+
+    def custom_complete(self, commands):
+        def complete(text, state):
+            for cmd in commands:
+                if cmd.startswith(text):
+                    if not state:
+                        return cmd
+                    else:
+                        state -= 1
+        return complete
 
     def get_territory(self, territories, prompt='Enter a territory: ', skipable=False):
         if skipable: prompt = '(ENTER TO SKIP) '+prompt
+        readline.set_completer(self.custom_complete(territories))
         while True:
             try:
                 territory = raw_input(prompt)
@@ -112,6 +127,7 @@ class HumanPlayer(Player):
 
     def get_n_troops(self, min_troops, max_troops, prompt='Enter number of troops: ', skipable=False):
         if skipable: prompt = '(ENTER TO SKIP) '+prompt
+        readline.set_completer(self.custom_complete([str(x) for x in range(min_troops, max_troops+1)]))
         while True:
             try:
                 n_troops = raw_input(prompt)
